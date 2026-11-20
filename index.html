@@ -684,9 +684,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:12p
 .zb,.lb{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;min-height:38px}
 .zb.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .lb{font-size:13px;padding:6px 11px;min-height:34px;color:var(--muted)}
-.lb .sw{opacity:.35}
-.lb.on{color:var(--ink);border-color:#cfcbc4}
-.lb.on .sw{opacity:1}
 .sw{width:10px;height:10px;border-radius:3px;display:inline-block;flex:0 0 auto}
 #layers{padding-top:0}
 .wrap{display:flex;flex-direction:column}
@@ -734,6 +731,13 @@ h2{font-size:21px;margin:10px 0 2px;letter-spacing:-.015em}
 .zrow b{display:block;font-size:14.5px}
 .zrow span{font-size:12.5px;color:var(--muted)}
 .zrow em{font-style:normal;font-weight:600;font-size:13px;color:var(--accent);white-space:nowrap}
+.zrow em small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;text-align:right}
+.fbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--soft);border-radius:12px;padding:8px 8px 8px 12px;margin:10px 0 2px;font-size:13px;font-weight:600}
+.fx{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.zg{margin-top:6px}
+.zgh{display:flex;justify-content:space-between;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 2px 6px;font-weight:700;font-size:13.5px;cursor:pointer;text-align:left}
+.zgh span{font-weight:500;color:var(--accent);font-size:12.5px}
+.lb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .foot{font-size:11.5px;color:var(--muted);margin-top:18px;line-height:1.5}
 .mk{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);color:#fff;font:700 12px/22px Inter,sans-serif;text-align:center}
 .mk.sm{flex:0 0 24px;width:24px;height:24px;font-size:11px;line-height:20px;margin-top:1px}
@@ -971,8 +975,8 @@ const osm = p => 'https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.l
 const osmSearch = q => 'https://www.openstreetmap.org/search?query=' + encodeURIComponent(q + ', Madrid');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-let state = {zone: null, on: new Set(Object.keys(LAYERS))};
-try { const s = JSON.parse(localStorage.getItem('nido-mad-layers') || 'null'); if (Array.isArray(s)) state.on = new Set(s); } catch (e) {}
+let state = {zone: null, focus: null};
+const isOn = l => !state.focus || state.focus === l;
 
 /* ================= MAP ================= */
 const map = L.map('map', {zoomControl: false, attributionControl: true, minZoom: 11, maxZoom: 18, tap: true})
@@ -1018,7 +1022,7 @@ Object.entries(ZONE_GEO).forEach(([k, g]) => {
 });
 
 function styleZones() {
-  const rent = state.on.has('ren');
+  const rent = isOn('ren');
   Object.entries(zoneLayers).forEach(([k, z]) => {
     const sel = state.zone === k, dim = state.zone && !sel;
     z.poly.setStyle({
@@ -1045,8 +1049,8 @@ function pinIcon(l, sel) {
 function drawMarkers() {
   markerLayer.clearLayers();
   PLACES.forEach((p, i) => {
-    if (!p.lat || !state.on.has(p.l)) return;
-    if (!state.zone || p.z !== state.zone) return;
+    if (!p.lat || !isOn(p.l)) return;
+    if (state.zone ? p.z !== state.zone : !state.focus) return;
     const m = L.marker([p.lat, p.lng], {icon: pinIcon(p.l), riseOnHover: true})
       .bindPopup('<div class="pp"><div class="pt" style="color:' + LAYERS[p.l].color + '">' + esc(LAYERS[p.l].name) + '</div><b>' + esc(p.n) + '</b><p>' + esc(p.d) + '</p>' +
         (p.a ? '<div class="ap">Ubicación aproximada</div>' : '') + '<a target="_blank" rel="noopener" href="' + osm(p) + '">Ver en OpenStreetMap</a></div>', {maxWidth: 260});
@@ -1068,15 +1072,15 @@ function buildLayerBar() {
     '<button class="lb" data-l="' + k + '" aria-pressed="false"><span class="sw" style="background:' + l.color + '"></span>' + l.name + '</button>').join('');
   bar.onclick = e => {
     const b = e.target.closest('.lb'); if (!b) return;
-    const k = b.dataset.l; state.on.has(k) ? state.on.delete(k) : state.on.add(k);
-    try { localStorage.setItem('nido-mad-layers', JSON.stringify([...state.on])); } catch (err) {}
-    render();
+    const k = b.dataset.l; state.focus = state.focus === k ? null : k;
+    render(); fitZone();
   };
 }
 function syncBars() {
   document.querySelectorAll('.zb').forEach(b => b.classList.toggle('on', (b.dataset.z || null) === state.zone));
-  document.querySelectorAll('.lb').forEach(b => { const on = state.on.has(b.dataset.l); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  document.querySelectorAll('.lb').forEach(b => { const on = state.focus === b.dataset.l; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
   const act = document.querySelector('.zb.on'); if (act) act.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
+  const la = document.querySelector('.lb.on'); if (la) la.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
 }
 
 function rentCard(k) {
@@ -1098,31 +1102,52 @@ function placeItem(p, i) {
     '<p>' + esc(p.d) + '</p>' + (p.lat ? '' : '<a target="_blank" rel="noopener" href="' + osmSearch(p.n) + '">Buscar en OpenStreetMap</a>') + '</div></li>';
 }
 
+const secHead = (L_, n) => '<div class="ch"><span class="sw" style="background:' + L_.color + '"></span>' + L_.name + (n ? ' <i>' + n + '</i>' : '') + '</div>';
+const SAL_NOTE = '<p class="note">Farmacias: hay en casi cada calle comercial; la de guardia (noche y domingo) se consulta en el buscador del Colegio de Farmacéuticos de Madrid. El centro de salud se asigna por domicilio.</p>';
+function compareCard() {
+  const rows = Object.entries(ZONES).sort((a, b) => a[1].rent.m2 - b[1].rent.m2).map(([key, z]) => {
+    const r = z.rent;
+    return '<button class="zrow" data-z="' + key + '"><div><b>' + z.name + '</b><span>' + esc(z.tag) + '</span></div><em>' + String(r.m2).replace('.', ',') + ' €/m²' + (r.est ? '*' : '') +
+      '<small>≈ ' + fmt(Math.round(r.m2 * 100 / 10) * 10) + ' €/mes · 100 m²</small></em></button>';
+  });
+  return '<section class="card">' + secHead(LAYERS.ren) + '<p class="note" style="margin:0 0 4px">Renta de larga estancia por zona, de menor a mayor.</p>' + rows.join('') +
+    '<p class="note">* Estimado. Amueblados por meses suelen salir más caros: la mayoría entre 2.100 y 3.000 €/mes. Toca una zona para ver el detalle.</p></section>';
+}
+function layerSection(l, k) {
+  const L_ = LAYERS[l];
+  if (l === 'ren') return k ? rentCard(k) : compareCard();
+  if (l === 'tram') return tramCard(k);
+  const items = PLACES.map((p, i) => [p, i]).filter(([p]) => p.l === l && (!k || p.z === k));
+  if (!items.length) {
+    if (l === 'sal') return '<section class="card">' + secHead(L_) + SAL_NOTE + '</section>';
+    return '<section class="card">' + secHead(L_) + '<p class="note">En esta zona la oferta está en los centros comerciales cercanos; se completará en la versión final.</p></section>';
+  }
+  let body;
+  if (k) body = '<ul class="pls">' + items.map(([p, i]) => placeItem(p, i)).join('') + '</ul>';
+  else body = Object.keys(ZONES).map(z => {
+    const its = items.filter(([p]) => p.z === z); if (!its.length) return '';
+    return '<div class="zg"><button class="zgh" data-z="' + z + '">' + ZONES[z].name + ' <span>ver zona →</span></button><ul class="pls">' + its.map(([p, i]) => placeItem(p, i)).join('') + '</ul></div>';
+  }).join('');
+  return '<section class="card">' + secHead(L_, items.length) + body + (l === 'sal' ? SAL_NOTE : '') + '</section>';
+}
+function zoneHeader(k, compact) {
+  const z = ZONES[k];
+  return '<section class="zh"><h2>' + z.name + '</h2><p>' + esc(z.tag) + '</p>' + (compact ? '' :
+    '<div class="pc"><div><div class="pt2">Lo mejor</div><ul>' + z.pros.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' +
+    '<div><div class="pt2">A tener en cuenta</div><ul>' + z.cons.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div></div>') + '</section>';
+}
 function renderPanel() {
-  const k = state.zone, out = [];
-  if (!k) {
-    out.push('<section class="intro"><h2>Elige una zona</h2><p>Siete zonas de Madrid pensadas para familias. Toca una en el mapa o arriba para ver colegios, salud, súper, planes con niños, transporte, trámites y rentas.</p></section>');
-    const rows = Object.entries(ZONES).sort((a, b) => a[1].rent.m2 - b[1].rent.m2).map(([key, z]) =>
-      '<button class="zrow" data-z="' + key + '"><div><b>' + z.name + '</b><span>' + esc(z.tag) + '</span></div><em>' + String(z.rent.m2).replace('.', ',') + ' €/m²' + (z.rent.est ? '*' : '') + '</em></button>');
-    out.push('<section class="card"><div class="ch">Comparar zonas · renta de larga estancia</div>' + rows.join('') + '<p class="note">* Estimado. Toca una zona para ver el detalle.</p></section>');
-    if (state.on.has('tram')) out.push(tramCard(null));
+  const k = state.zone, f = state.focus, out = [];
+  if (f) {
+    out.push('<div class="fbar"><span>' + (k ? ZONES[k].name : 'Toda la ciudad') + ' · ' + LAYERS[f].name + '</span><button class="fx" data-clear="1">Ver todo ✕</button></div>');
+    if (k) out.push(zoneHeader(k, true));
+    out.push(layerSection(f, k));
+  } else if (!k) {
+    out.push('<section class="intro"><h2>Elige una zona</h2><p>Siete zonas de Madrid pensadas para familias. Toca una zona, o una categoría (colegios, transporte…) para verla en toda la ciudad.</p></section>');
+    out.push(compareCard());
   } else {
-    const z = ZONES[k];
-    out.push('<section class="zh"><h2>' + z.name + '</h2><p>' + esc(z.tag) + '</p>' +
-      '<div class="pc"><div><div class="pt2">Lo mejor</div><ul>' + z.pros.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' +
-      '<div><div class="pt2">A tener en cuenta</div><ul>' + z.cons.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div></div></section>');
-    if (state.on.has('ren')) out.push(rentCard(k));
-    Object.entries(LAYERS).filter(([l, L_]) => !L_.panel && state.on.has(l)).forEach(([l, L_]) => {
-      const items = PLACES.map((p, i) => [p, i]).filter(([p]) => p.z === k && p.l === l);
-      if (!items.length) {
-        if (l === 'sal') out.push('<section class="card"><div class="ch"><span class="sw" style="background:' + L_.color + '"></span>' + L_.name + '</div><p class="note">Centro de salud: se asigna por domicilio. Farmacia de guardia: buscador del Colegio de Farmacéuticos de Madrid.</p></section>');
-        else if (l === 'res' || l === 'sup') out.push('<section class="card"><div class="ch"><span class="sw" style="background:' + L_.color + '"></span>' + L_.name + '</div><p class="note">En esta zona la oferta está en los centros comerciales cercanos; se completará en la versión final.</p></section>');
-        return;
-      }
-      out.push('<section class="card"><div class="ch"><span class="sw" style="background:' + L_.color + '"></span>' + L_.name + ' <i>' + items.length + '</i></div><ul class="pls">' + items.map(([p, i]) => placeItem(p, i)).join('') + '</ul>' +
-        (l === 'sal' ? '<p class="note">Farmacias: hay en casi cada calle comercial; la de guardia (noche y domingo) se consulta en el buscador del Colegio de Farmacéuticos de Madrid.</p>' : '') + '</section>');
-    });
-    if (state.on.has('tram')) out.push(tramCard(k));
+    out.push(zoneHeader(k, false));
+    ['ren', 'col', 'sal', 'sup', 'kid', 'res', 'tra', 'tram'].forEach(l => out.push(layerSection(l, k)));
   }
   out.push('<p class="foot">Prototipo · datos verificados a noviembre de 2026; confirmen horarios y vacantes antes de ir. Mapa © colaboradores de OpenStreetMap. Límites de barrios: Ayuntamiento de Madrid. Rentas: idealista, Brains Real Estate, OCU; temporada: GuestReady.</p>');
   $('#panel').innerHTML = out.join('');
@@ -1140,9 +1165,13 @@ function highlight(i, fromList) {
 function fitZone() {
   if (state.zone) {
     const pts = [ZONE_GEO[state.zone].poly];
-    PLACES.filter(p => p.z === state.zone && p.lat && state.on.has(p.l)).forEach(p => pts.push([[p.lat, p.lng]]));
+    PLACES.filter(p => p.z === state.zone && p.lat && isOn(p.l)).forEach(p => pts.push([[p.lat, p.lng]]));
     map.flyToBounds(L.latLngBounds(pts.flat()), {padding: [24, 24], maxZoom: 15, duration: .6});
-  } else map.flyToBounds(L.latLngBounds(Object.values(ZONE_GEO).map(g => g.poly).flat()), {padding: [16, 16], duration: .6});
+  } else {
+    const pts = Object.values(ZONE_GEO).map(g => g.poly).flat();
+    if (state.focus) PLACES.filter(p => p.lat && p.l === state.focus).forEach(p => pts.push([p.lat, p.lng]));
+    map.flyToBounds(L.latLngBounds(pts), {padding: [16, 16], duration: .6});
+  }
 }
 
 function render() { syncBars(); styleZones(); drawMarkers(); renderPanel(); }
@@ -1153,7 +1182,8 @@ function selectZone(k) {
 }
 
 $('#panel').addEventListener('click', e => {
-  const zr = e.target.closest('.zrow'); if (zr) return selectZone(zr.dataset.z);
+  const zr = e.target.closest('.zrow, .zgh'); if (zr) return selectZone(zr.dataset.z);
+  if (e.target.closest('[data-clear]')) { state.focus = null; render(); return fitZone(); }
   if (e.target.closest('a')) return;
   const li = e.target.closest('.pl'); if (li) highlight(+li.dataset.i, true);
 });
