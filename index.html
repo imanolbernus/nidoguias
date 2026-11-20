@@ -746,6 +746,7 @@ h2{font-size:21px;margin:10px 0 2px;letter-spacing:-.015em}
 .lbl{font:italic 11px Inter,sans-serif;color:#6f9c66;white-space:nowrap;pointer-events:none}
 .lbl.road{font-style:normal;font-size:10px;color:#a29e97}
 .leaflet-container{font-family:Inter,sans-serif;background:#f4f3ef}
+.osm-soft{filter:grayscale(.85) brightness(1.04) contrast(.92)}
 body.fallback .leaflet-container{background:#fbfaf8}
 .leaflet-popup-content-wrapper{border-radius:12px}
 .leaflet-popup-content{margin:11px 13px;font-size:13px}
@@ -981,9 +982,9 @@ map.attributionControl.setPrefix(false);
 
 const basePane = map.createPane('basePane'); basePane.style.zIndex = 250;
 let tilesOk = 0, tilesErr = 0;
-const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  subdomains: 'abcd', maxZoom: 19,
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © CARTO'
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, className: 'osm-soft',
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a>'
 }).on('tileload', () => tilesOk++).on('tileerror', () => tilesErr++).addTo(map);
 
 function drawFallbackBase() {
