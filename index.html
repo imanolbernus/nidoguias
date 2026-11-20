@@ -1046,7 +1046,7 @@ function drawMarkers() {
   markerLayer.clearLayers();
   PLACES.forEach((p, i) => {
     if (!p.lat || !state.on.has(p.l)) return;
-    if (state.zone && p.z !== state.zone) return;
+    if (!state.zone || p.z !== state.zone) return;
     const m = L.marker([p.lat, p.lng], {icon: pinIcon(p.l), riseOnHover: true})
       .bindPopup('<div class="pp"><div class="pt" style="color:' + LAYERS[p.l].color + '">' + esc(LAYERS[p.l].name) + '</div><b>' + esc(p.n) + '</b><p>' + esc(p.d) + '</p>' +
         (p.a ? '<div class="ap">Ubicación aproximada</div>' : '') + '<a target="_blank" rel="noopener" href="' + osm(p) + '">Ver en OpenStreetMap</a></div>', {maxWidth: 260});
