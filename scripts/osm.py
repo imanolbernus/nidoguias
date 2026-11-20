@@ -79,7 +79,7 @@ for z in ZONES:
         lat = e.get('lat') or e.get('center', {}).get('lat'); lng = e.get('lon') or e.get('center', {}).get('lon')
         l = classify(t)
         if not l or lat is None: continue
-        name = t.get('name') or ('Juegos infantiles' if t.get('leisure') == 'playground' else None)
+        name = t.get('name') or (kind(t) if l in ('sal', 'sup') or t.get('leisure') == 'playground' else None)
         if not name: continue
         key = (l, name.lower(), round(lat, 3), round(lng, 3))
         if key in seen: continue

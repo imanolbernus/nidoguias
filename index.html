@@ -738,6 +738,21 @@ h2{font-size:21px;margin:10px 0 2px;letter-spacing:-.015em}
 .zgh{display:flex;justify-content:space-between;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 2px 6px;font-weight:700;font-size:13.5px;cursor:pointer;text-align:left}
 .zgh span{font-weight:500;color:var(--accent);font-size:12.5px}
 .lb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sub{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:8px 0 2px;display:flex;justify-content:space-between;gap:8px}
+.sub span{text-transform:none;letter-spacing:0;font-weight:500}
+.more{border-top:1px solid var(--line);margin-top:8px;padding-top:4px}
+.osq{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;margin:2px 0 6px;background:#fff}
+.ol{list-style:none;margin:0;padding:0}
+.oi{padding:8px 4px;border-top:1px solid var(--line);cursor:pointer;border-radius:8px}
+.oi:first-child{border-top:0}
+.oi:hover{background:var(--soft)}
+.oi b{display:block;font-size:13.5px;font-weight:600}
+.oi em{font-style:normal;font-size:11px;font-weight:600;color:#2b8a3e;background:#ebf6ee;border-radius:999px;padding:1px 7px;margin-left:4px}
+.oi span{font-size:12.5px;color:var(--muted)}
+.vm{width:100%;margin-top:6px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;font-size:13px;font-weight:500;cursor:pointer}
+.seg{display:flex;gap:4px;background:var(--soft);border-radius:10px;padding:3px;margin:0 0 6px}
+.seg button{flex:1;border:0;background:none;border-radius:8px;padding:7px 4px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .foot{font-size:11.5px;color:var(--muted);margin-top:18px;line-height:1.5}
 .mk{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);color:#fff;font:700 12px/22px Inter,sans-serif;text-align:center}
 .mk.sm{flex:0 0 24px;width:24px;height:24px;font-size:11px;line-height:20px;margin-top:1px}
@@ -866,7 +881,7 @@ const LAYERS = {
   kid: {name: 'Parques y planes con niños', color: '#e8590c', icon: 'P'},
   res: {name: 'Restaurantes con niños', color: '#9c36b5', icon: 'R'},
   tra: {name: 'Transporte', color: '#495057', icon: 'M'},
-  tram: {name: 'Trámites', color: '#1c1c1e', panel: true},
+  tram: {name: 'Trámites', color: '#7048e8', panel: true},
   ren: {name: 'Renta', color: '#0b7285', panel: true}
 };
 
@@ -959,14 +974,32 @@ const PLACES = [
  {z:'arganzuela',l:'tra',n:'Metro Legazpi',d:'L3 y L6 (circular); puerta a Madrid Río y Matadero.',t:'Metro',lat:40.3910,lng:-3.6955}
 ];
 
-const TRAMITES = [
-  {h:'Entrada a España', d:'Con pasaporte mexicano pueden estar hasta 90 días en un periodo de 180 sin visado. Para más tiempo necesitan un visado nacional (estudios, teletrabajo internacional o residencia no lucrativa) tramitado en el consulado de España en México antes de viajar. Si tienen nacionalidad española o de la UE, basta su pasaporte o DNI.'},
-  {h:'ETIAS', d:'La autorización electrónica europea para viajeros sin visado aún no tiene fecha de inicio confirmada. Revisen travel-europe.europa.eu/etias antes de comprar vuelos.'},
-  {h:'Empadronamiento', d:'Alta en el padrón con el contrato de alquiler y pasaportes, con cita en Línea Madrid. Es la llave para escuela pública y abono de transporte personal.'},
-  {h:'Colegio a mitad de curso', d:'Pública y concertada: escolarización extraordinaria pedida al Servicio de Apoyo a la Escolarización del distrito; la Administración asigna plaza entre centros con vacantes. Privados: cada colegio decide; lleven boletines de los dos últimos cursos.'},
-  {h:'Salud', d:'Lleven seguro médico con cobertura en España (obligatorio para los visados). Emergencias: 112. Farmacia de guardia: buscador del Colegio de Farmacéuticos de Madrid.'},
-  {h:'Transporte', d:'Tarjeta Multi (2,50 €) con bono de 10 viajes Metro + EMT; menores de 4 años viajan gratis. Con padrón: abono personal de 30 días y tarjeta infantil gratuita de 4 a 6 años. Tarifas 2027: confirmar en crtm.es.'}
-];
+const STAYS = {corta: 'Menos de 3 meses', media: '3 a 6 meses', larga: 'Más de 6 meses'};
+const PASSES = {mx: 'Pasaporte mexicano', ue: 'Español o UE'};
+function tramites(st, ps) {
+  const t = [];
+  if (ps === 'ue') t.push({h: 'Entrada', d: 'Con pasaporte o DNI español o de la UE no necesitan visado ni permiso, se queden lo que se queden.'});
+  else if (st === 'corta') {
+    t.push({h: 'Entrada sin visado', d: 'Hasta 90 días en un periodo de 180. Lleven pasaporte vigente, boleto de regreso, comprobante de alojamiento y de fondos, y seguro médico de viaje.'});
+    t.push({h: 'ETIAS', d: 'La autorización electrónica europea aún no tiene fecha de inicio confirmada. Revisen travel-europe.europa.eu/etias antes de comprar vuelos.'});
+  } else t.push({h: 'Visado antes de viajar', d: 'Para más de 90 días necesitan visado nacional (estudios, teletrabajo internacional o residencia no lucrativa), tramitado en el consulado de España en México. Si el visado es de más de 6 meses, al llegar piden la TIE (tarjeta de extranjero) en el primer mes.'});
+  t.push({h: 'Empadronamiento', d: {
+    corta: 'No hace falta. El padrón es para el municipio donde viven la mayor parte del año, y en una estancia de semanas o pocos meses su residencia habitual sigue siendo México.',
+    media: 'Normalmente no aplica: el padrón es para el municipio donde viven la mayor parte del año. Sí lo necesitarían si quieren el abono personal de transporte o si un colegio público lo pide.',
+    larga: 'Sí: alta en el padrón con el contrato de alquiler y pasaportes, con cita en Línea Madrid. Abre la puerta a escuela pública, abono personal de transporte y centro de salud.'}[st]});
+  t.push({h: 'Colegio', d: st === 'larga'
+    ? 'Pública y concertada: con el padrón, piden plaza al Servicio de Apoyo a la Escolarización del distrito, que asigna entre los centros con vacantes. Privados: cada colegio decide.'
+    : 'Para estancias cortas lo práctico es un colegio privado: cada uno decide sus plazas y no piden padrón. Lleven boletines de los dos últimos cursos. En la red pública, la plaza a mitad de curso la asigna el Servicio de Apoyo a la Escolarización y suelen pedir domicilio en Madrid.'});
+  t.push({h: 'Dinero', d: st === 'larga'
+    ? 'Para alquiler largo y recibos conviene una cuenta española; con pasaporte (o NIE/TIE) se abre en un banco tradicional o digital.'
+    : 'No vale la pena abrir cuenta en España. Usen una tarjeta sin comisión por tipo de cambio o una cuenta multimoneda (por ejemplo Wise o Revolut). Casi todo se paga con tarjeta o con el móvil.'});
+  t.push({h: 'Celular', d: 'Una eSIM o tarjeta prepago española (Movistar, Vodafone, Orange o marcas económicas como Digi o Lowi) suele salir mucho más barata que el roaming. Para darla de alta piden pasaporte.'});
+  t.push({h: 'Transporte', d: st === 'larga'
+    ? 'Con padrón: tarjeta personal con abono de 30 días y tarjeta infantil gratuita de 4 a 6 años. Menores de 4 viajan gratis. Tarifas 2027: confirmar en crtm.es.'
+    : 'Tarjeta Multi (2,50 €) por adulto con bono de 10 viajes Metro + EMT, que también sirve para los niños a partir de 4 años. Menores de 4 viajan gratis. Tarifas 2027: confirmar en crtm.es.'});
+  t.push({h: 'Salud', d: 'Lleven seguro médico con cobertura en España (obligatorio para los visados). Emergencias: 112. Farmacia de guardia: buscador del Colegio de Farmacéuticos de Madrid.'});
+  return t;
+}
 
 /* ================= HELPERS ================= */
 const $ = s => document.querySelector(s);
@@ -975,7 +1008,9 @@ const osm = p => 'https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.l
 const osmSearch = q => 'https://www.openstreetmap.org/search?query=' + encodeURIComponent(q + ', Madrid');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-let state = {zone: null, focus: null};
+let state = {zone: null, focus: null, stay: 'corta', pass: 'mx', more: {}, q: {}};
+try { const p = JSON.parse(localStorage.getItem('nido-mad-prefs') || '{}'); if (STAYS[p.stay]) state.stay = p.stay; if (PASSES[p.pass]) state.pass = p.pass; } catch (e) {}
+let OSM = null;
 const isOn = l => !state.focus || state.focus === l;
 
 /* ================= MAP ================= */
@@ -1046,7 +1081,19 @@ function pinIcon(l, sel) {
   return L.divIcon({className: '', iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -12],
     html: '<div class="mk' + (sel ? ' sel' : '') + '" style="background:' + c + '">' + LAYERS[l].icon + '</div>'});
 }
+const osmLayer = L.layerGroup().addTo(map);
+function drawOsm() {
+  osmLayer.clearLayers();
+  if (!OSM || !state.zone || !state.focus || LAYERS[state.focus].panel) return;
+  const c = LAYERS[state.focus].color;
+  osmRows(state.focus, state.zone).forEach(r => {
+    L.circleMarker([r[1], r[2]], {radius: 4.5, weight: 1.5, color: '#fff', fillColor: c, fillOpacity: .85})
+      .bindPopup('<div class="pp"><div class="pt" style="color:' + c + '">' + esc(r[3]) + '</div><b>' + esc(r[0]) + '</b>' + (r[4] ? '<p>' + esc(r[4]) + '</p>' : '') + (r[5] ? '<p class="ap">Horario: ' + esc(r[5]) + '</p>' : '') +
+        '<a target="_blank" rel="noopener" href="' + osm({lat: r[1], lng: r[2]}) + '">Ver en OpenStreetMap</a></div>', {maxWidth: 260}).addTo(osmLayer);
+  });
+}
 function drawMarkers() {
+  drawOsm();
   markerLayer.clearLayers();
   PLACES.forEach((p, i) => {
     if (!p.lat || !isOn(p.l)) return;
@@ -1092,9 +1139,11 @@ function rentCard(k) {
     '<p class="note">Precio de anuncios de larga estancia. Amueblados por meses (contrato de temporada) suelen salir más caros: la mayoría se mueve entre 2.100 y 3.000 €/mes, más fianza de dos meses. Fuente: ' + esc(r.src) + '.</p></section>';
 }
 function tramCard(k) {
+  const seg = (obj, cur, key) => '<div class="seg">' + Object.entries(obj).map(([v, lab]) => '<button data-' + key + '="' + v + '" class="' + (v === cur ? 'on' : '') + '">' + lab + '</button>').join('') + '</div>';
   return '<section class="card"><div class="ch"><span class="sw" style="background:' + LAYERS.tram.color + '"></span>Trámites</div>' +
-    (k ? '<p class="zt">' + esc(ZONES[k].tramite) + '</p>' : '') +
-    '<ol class="steps">' + TRAMITES.map(t => '<li><b>' + esc(t.h) + '</b><span>' + esc(t.d) + '</span></li>').join('') + '</ol></section>';
+    '<p class="note" style="margin:2px 0 6px">¿Cuánto tiempo se quedan?</p>' + seg(STAYS, state.stay, 'stay') + seg(PASSES, state.pass, 'pass') +
+    (k && state.stay === 'larga' ? '<p class="zt">' + esc(ZONES[k].tramite) + '</p>' : '') +
+    '<ol class="steps">' + tramites(state.stay, state.pass).map(t => '<li><b>' + esc(t.h) + '</b><span>' + esc(t.d) + '</span></li>').join('') + '</ol></section>';
 }
 function placeItem(p, i) {
   return '<li class="pl" data-i="' + i + '"><span class="mk sm" style="background:' + LAYERS[p.l].color + '">' + LAYERS[p.l].icon + '</span><div>' +
@@ -1119,8 +1168,10 @@ function layerSection(l, k) {
   if (l === 'tram') return tramCard(k);
   const items = PLACES.map((p, i) => [p, i]).filter(([p]) => p.l === l && (!k || p.z === k));
   if (!items.length) {
+    const more = k ? moreList(l, k) : '';
+    if (more) return '<section class="card">' + secHead(L_, osmCount(l, k)) + more + (l === 'sal' ? SAL_NOTE : '') + '</section>';
     if (l === 'sal') return '<section class="card">' + secHead(L_) + SAL_NOTE + '</section>';
-    return '<section class="card">' + secHead(L_) + '<p class="note">En esta zona la oferta está en los centros comerciales cercanos; se completará en la versión final.</p></section>';
+    return '<section class="card">' + secHead(L_) + '<p class="note">En esta zona la oferta está en los centros comerciales cercanos.</p></section>';
   }
   let body;
   if (k) body = '<ul class="pls">' + items.map(([p, i]) => placeItem(p, i)).join('') + '</ul>';
@@ -1128,7 +1179,27 @@ function layerSection(l, k) {
     const its = items.filter(([p]) => p.z === z); if (!its.length) return '';
     return '<div class="zg"><button class="zgh" data-z="' + z + '">' + ZONES[z].name + ' <span>ver zona →</span></button><ul class="pls">' + its.map(([p, i]) => placeItem(p, i)).join('') + '</ul></div>';
   }).join('');
-  return '<section class="card">' + secHead(L_, items.length) + body + (l === 'sal' ? SAL_NOTE : '') + '</section>';
+  return '<section class="card">' + secHead(L_, items.length + osmCount(l, k)) + (k ? '<div class="sub">Recomendados</div>' : '') + body + (k ? moreList(l, k) : cityMore(l)) + (l === 'sal' ? SAL_NOTE : '') + '</section>';
+}
+function osmRows(l, k) { return (OSM && OSM.zones[k] && OSM.zones[k][l]) || []; }
+function osmCount(l, k) { return k ? osmRows(l, k).length : Object.keys(ZONES).reduce((n, z) => n + osmRows(l, z).length, 0); }
+function cityMore(l) {
+  const n = osmCount(l, null); if (!n) return '';
+  return '<p class="note">Y ' + fmt(n) + ' lugares más en las 7 zonas (OpenStreetMap). Elige una zona para verlos en lista y en el mapa.</p>';
+}
+function moreList(l, k) {
+  const rows = osmRows(l, k); if (!rows.length) return '';
+  const key = l + k, q = (state.q[key] || '').toLowerCase();
+  const f = q ? rows.filter(r => (r[0] + ' ' + r[3] + ' ' + r[4]).toLowerCase().includes(q)) : rows;
+  const lim = state.more[key] || 25;
+  const kinds = {}; rows.forEach(r => kinds[r[3]] = (kinds[r[3]] || 0) + 1);
+  const summary = Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, n]) => n + ' ' + t.toLowerCase()).join(' · ');
+  const focusHint = state.focus === l ? '' : ' Toca la categoría arriba para verlos todos en el mapa.';
+  return '<div class="more"><div class="sub">Más opciones en ' + ZONES[k].name + ' <span>' + fmt(rows.length) + ' · OpenStreetMap</span></div>' +
+    '<p class="note" style="margin:0 0 6px">' + esc(summary) + '.' + focusHint + '</p>' +
+    '<input class="osq" data-key="' + key + '" type="search" placeholder="Buscar por nombre, tipo o calle" value="' + esc(state.q[key] || '') + '">' +
+    '<ul class="ol">' + f.slice(0, lim).map(r => '<li class="oi" data-ll="' + r[1] + ',' + r[2] + '" data-n="' + esc(r[0]) + '" data-l="' + l + '"><b>' + esc(r[0]) + (r[6] ? ' <em>con niños</em>' : '') + '</b><span>' + esc(r[3]) + (r[4] ? ' · ' + esc(r[4]) : '') + (r[5] ? ' · ' + esc(r[5]) : '') + '</span></li>').join('') + '</ul>' +
+    (f.length > lim ? '<button class="vm" data-more="' + key + '">Ver ' + Math.min(25, f.length - lim) + ' más de ' + fmt(f.length - lim) + '</button>' : (q && !f.length ? '<p class="note">Sin resultados.</p>' : '')) + '</div>';
 }
 function zoneHeader(k, compact) {
   const z = ZONES[k];
@@ -1149,7 +1220,7 @@ function renderPanel() {
     out.push(zoneHeader(k, false));
     ['ren', 'col', 'sal', 'sup', 'kid', 'res', 'tra', 'tram'].forEach(l => out.push(layerSection(l, k)));
   }
-  out.push('<p class="foot">Prototipo · datos verificados a noviembre de 2026; confirmen horarios y vacantes antes de ir. Mapa © colaboradores de OpenStreetMap. Límites de barrios: Ayuntamiento de Madrid. Rentas: idealista, Brains Real Estate, OCU; temporada: GuestReady.</p>');
+  out.push('<p class="foot">Prototipo · datos verificados a noviembre de 2026; confirmen horarios y vacantes antes de ir. Mapa y listados ampliados © colaboradores de OpenStreetMap (actualización semanal). Límites de barrios: Ayuntamiento de Madrid. Rentas: idealista, Brains Real Estate, OCU; temporada: GuestReady.</p>');
   $('#panel').innerHTML = out.join('');
   $('#panel').scrollTop = 0;
 }
@@ -1184,8 +1255,27 @@ function selectZone(k) {
 $('#panel').addEventListener('click', e => {
   const zr = e.target.closest('.zrow, .zgh'); if (zr) return selectZone(zr.dataset.z);
   if (e.target.closest('[data-clear]')) { state.focus = null; render(); return fitZone(); }
+  const sb = e.target.closest('[data-stay],[data-pass]');
+  if (sb) { if (sb.dataset.stay) state.stay = sb.dataset.stay; if (sb.dataset.pass) state.pass = sb.dataset.pass;
+    try { localStorage.setItem('nido-mad-prefs', JSON.stringify({stay: state.stay, pass: state.pass})); } catch (err) {}
+    const y = $('#panel').scrollTop, wy = window.scrollY; renderPanel(); $('#panel').scrollTop = y; window.scrollTo(0, wy); return; }
+  const vm = e.target.closest('[data-more]');
+  if (vm) { state.more[vm.dataset.more] = (state.more[vm.dataset.more] || 25) + 25; const y = $('#panel').scrollTop, wy = window.scrollY; renderPanel(); $('#panel').scrollTop = y; window.scrollTo(0, wy); return; }
+  const oi = e.target.closest('.oi');
+  if (oi) { const [la, ln] = oi.dataset.ll.split(',').map(Number);
+    if (state.focus !== oi.dataset.l) { state.focus = oi.dataset.l; syncBars(); styleZones(); drawMarkers(); }
+    map.flyTo([la, ln], 17, {duration: .5});
+    setTimeout(() => osmLayer.eachLayer(m => { const p = m.getLatLng(); if (Math.abs(p.lat - la) < 1e-6 && Math.abs(p.lng - ln) < 1e-6) m.openPopup(); }), 560);
+    if (window.innerWidth < 900) $('#map').scrollIntoView({behavior: 'smooth'}); return; }
   if (e.target.closest('a')) return;
   const li = e.target.closest('.pl'); if (li) highlight(+li.dataset.i, true);
+});
+$('#panel').addEventListener('input', e => {
+  const i = e.target.closest('.osq'); if (!i) return;
+  state.q[i.dataset.key] = i.value; state.more[i.dataset.key] = 25;
+  const key = i.dataset.key, pos = i.selectionStart, y = $('#panel').scrollTop, wy = window.scrollY;
+  renderPanel(); $('#panel').scrollTop = y; window.scrollTo(0, wy);
+  const n = document.querySelector('.osq[data-key="' + key + '"]'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (err) {} }
 });
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if ((h || null) !== state.zone && (!h || ZONES[h])) selectZone(h); });
 
@@ -1193,6 +1283,7 @@ buildZoneBar(); buildLayerBar();
 const h0 = location.hash.slice(1);
 state.zone = ZONES[h0] ? h0 : null;
 map.whenReady(() => { render(); setTimeout(() => { map.invalidateSize(); fitZone(); }, 60); });
+fetch('data/osm.json').then(r => r.ok ? r.json() : null).then(d => { if (d && d.zones) { OSM = d; render(); } }).catch(() => {});
 
 </script>
 </body>
